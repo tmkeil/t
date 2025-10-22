@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "workspaces": [
+    "./services/frontend",
+    "./services/backend",
+    "./packages/shared"
+  ]
+}

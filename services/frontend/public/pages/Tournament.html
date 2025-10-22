@@ -1,0 +1,47 @@
+<div class="flex flex-col items-center">
+  <div id="tournamentStatus" class="text-sm text-gray-300">Not joined</div>
+
+  <!-- Canvas -->
+  <canvas id="gameCanvas" class="w-[90vw] max-w-[1280px] h-[500px] bg-[#001f1f] rounded-lg shadow-lg"></canvas>
+
+  <!-- Game Controls -->
+  <div id="gameControls" class="mt-2 flex gap-2 flex-wrap justify-center">
+    <button id="startBtn" class="px-3 py-1 bg-green-700 hover:bg-green-800 rounded text-sm">Ready</button>
+    <button id="leaveBtn" class="px-3 py-1 bg-red-700 hover:bg-red-800 rounded text-sm">Leave Tournament</button>
+    <button id="joinBtn" class="px-3 py-1 bg-blue-700 hover:bg-blue-800 rounded text-sm">Join Tournament</button>
+  </div>
+
+  <div class="tournament-table flex flex-row items-center justify-center w-[760px] gap-6 mt-6">
+    <!-- Round 1 -->
+    <div class="first-round flex flex-col gap-6 flex-1">
+      <div id="g0" class="rounded-2xl bg-slate-800 border border-slate-700 p-1">
+        <p id="r1g1_p1" data-slot="r1g1_p1" data-t_id="" data-tournament-user
+          class="h-8 flex items-center justify-between px-3 rounded-lg bg-slate-900 border border-slate-700"></p>
+        <p id="r1g1_p2" data-slot="r1g1_p2" data-t_id="" data-tournament-user
+          class="h-8 mt-1 flex items-center justify-between px-3 rounded-lg bg-slate-900 border border-slate-700"></p>
+      </div>
+      <div id="g1" class="rounded-2xl bg-slate-800 border border-slate-700 p-1">
+        <p id="r1g2_p1" data-slot="r1g2_p1" data-t_id="" data-tournament-user
+          class="h-8 flex items-center justify-between px-3 rounded-lg bg-slate-900 border border-slate-700"></p>
+        <p id="r1g2_p2" data-slot="r1g2_p2" data-t_id="" data-tournament-user
+          class="h-8 mt-1 flex items-center justify-between px-3 rounded-lg bg-slate-900 border border-slate-700"></p>
+      </div>
+    </div>
+
+    <!-- Round 2 -->
+    <div class="sec-round flex-1">
+      <div class="rounded-2xl bg-slate-800 border border-slate-700 p-1">
+        <p id="r2_p1" data-slot="r2_p1" data-t_id="" data-tournament-user
+          class="h-8 flex items-center justify-between px-3 rounded-lg bg-slate-900 border border-slate-700"></p>
+        <p id="r2_p2" data-slot="r2_p2" data-t_id="" data-tournament-user
+          class="h-8 mt-1 flex items-center justify-between px-3 rounded-lg bg-slate-900 border border-slate-700"></p>
+      </div>
+    </div>
+
+    <!-- Winner -->
+    <div class="thi-round">
+      <p id="winner" data-slot="winner" data-tournament-user
+        class="rounded-2xl bg-yellow-700 border border-yellow-600 px-4 h-12 flex items-center"></p>
+    </div>
+  </div>
+</div>

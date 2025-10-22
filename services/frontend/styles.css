@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+body {
+  font-size: 1.5rem;
+  color: #eee;
+  font-family: "Quantico", sans-serif;
+
+  /* background: linear-gradient(180deg, #111 0%, #111 40%, #ad2648 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite; */
+
+  border: 2px solid #ccc;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* @keyframes gradientShift {
+  0% { background-position: 50% 0%; }
+  50% { background-position: 50% 100%; }
+  100% { background-position: 50% 0%; }
+} */
+
+.grid-top {
+	margin: 0 auto;
+	position: fixed;
+	top: 0;
+	left: -50%;
+	background-color: rgba(20 30 40 0.4);
+	background-image: 
+		linear-gradient(90deg, transparent 0%, transparent 85%, #e42655 90%, transparent 95%), 
+		linear-gradient(0deg, transparent 0%, transparent 85%, #e42655 90%, transparent 95%);
+	background-size: 60px 30px;
+	width: 200vw;
+	height: 60vh;
+	transform: translate3D(0, 0, 0) perspective(150px) rotateX(-45deg);
+	perspective-origin: bottom;
+
+	animation-name: movement-top;
+	animation-duration: 20s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+	z-index: -1;
+}
+
+.grid-top:after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(to bottom, transparent, var(--color-gray-900));
+}
+
+.grid-bottom {
+	margin: 0 auto;
+	position: fixed;
+	bottom: 0;
+	left: -50%;
+	background-color: rgba(20 30 40 0.4);
+	background-image:
+		linear-gradient(90deg, transparent 0%, transparent 85%, #e42655 90%, transparent 95%),
+		linear-gradient(0deg, transparent 0%, transparent 85%, #e42655 90%, transparent 95%);
+	background-size: 60px 30px;
+	width: 200vw;
+	height: 60vh;
+	transform: translate3D(0, 0, 0) perspective(150px) rotateX(45deg) ;
+	perspective-origin: top;
+
+	animation-name: movement-bottom;
+	animation-duration: 20s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+	z-index: -1;
+}
+
+.grid-bottom:after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(to top, transparent, var(--color-gray-900));
+}
+
+@keyframes movement-bottom {
+	0% { background-position: 0% 0%; }
+	100% { background-position: 0% 100%; }
+}
+
+@keyframes movement-top {
+	0% { background-position: 0% 100%; }
+	100% { background-position: 0% 0%; }
+}
+
+.grid-top, .grid-bottom {
+	will-change: transform, background-position;
+	transform-style: preserve-3d;
+    backface-visibility: hidden;
+}

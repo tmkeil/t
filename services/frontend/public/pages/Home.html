@@ -1,0 +1,144 @@
+<div class="home-content flex flex-row flex-grow">
+  <!-- LEFT: My dashboard section -->
+  <aside class="dashboard bg-gray-800 border-2 border-gray-300 p-10 flex flex-col w-[300px]">
+    <h3 class="text-2xl font-bold mb-4 text-white">My Dashboard</h3>
+
+    <div class="profile flex items-center mb-4 mydash_profile">
+      <div class="profile-pic w-24 h-24 border-2 border-gray-300 rounded-full mr-2 bg-gray-700 avatar" id="my-avatar"
+        aria-hidden="true"></div>
+      <div class="profile-info text-white">
+        <div class="mydash_name" id="my-name">USERNAME</div>
+        <div class="mydash_level text-sm text-gray-400" id="my-level">Level 0</div>
+      </div>
+    </div>
+
+    <ul class="stats mt-4 flex-grow text-white" aria-label="My Stats">
+      <li><span class="font-semibold">Wins</span> - <strong id="my-wins">0</strong></li>
+      <li><span class="font-semibold">Losses</span> - <strong id="my-losses">0</strong></li>
+      <li><span class="font-semibold">Win Rate</span> - <strong id="my-winrate">0%</strong></li>
+      <li class="hidden"><span>Tournaments Won</span> - <strong id="my-twins">0</strong></li>
+    </ul>
+
+    <button id="settingsBtn" class="mt-2 px-4 py-1 bg-gray-700 border-2 border-gray-300 text-white rounded hover:bg-teal-400 hover:border-teal-400 transition">Settings</button>
+  </aside>
+
+  <!-- CENTER: Main Content -->
+  <main class="main-content flex flex-col items-center justify-center p-5 flex-grow">
+    <h1 class="main-title text-8xl font-bold mb-5 text-teal-400">TRANSCENDENCE</h1>
+
+    <nav class="menu flex flex-col" aria-label="Game Modes">
+      <button
+        class="local_play my-2 px-8 py-2 text-3xl border-2 border-gray-300 bg-gray-700 text-white rounded hover:bg-teal-400 hover:border-teal-400 hover:text-white transition"
+        data-mode="local-1v1">LOCAL 1v1</button>
+
+      <button
+        class="remote_play my-2 px-8 py-2 text-3xl border-2 border-gray-300 bg-gray-700 text-white rounded hover:bg-teal-400 hover:border-teal-400 hover:text-white transition"
+        data-mode="online-1v1">ONLINE 1v1</button>
+
+      <button
+        class="tournament_play my-2 px-8 py-2 text-3xl border-2 border-gray-300 bg-gray-700 text-white rounded hover:bg-teal-400 hover:border-teal-400 hover:text-white transition"
+        data-mode="tournament">TOURNAMENT MODE</button>
+
+      <button
+        class="ai_play my-2 px-8 py-2 text-3xl border-2 border-gray-300 bg-gray-700 text-white rounded hover:bg-teal-400 hover:border-teal-400 hover:text-white transition"
+        data-mode="singleplayer-ai">SINGLEPLAYER AI MODE</button>
+    </nav>
+
+    <div id="home-tooltip" class="tooltip mt-5 text-xl text-gray-400 min-h-[40px]" aria-live="polite"></div>
+  </main>
+
+  <!-- RIGHT: Sidebar (Invites/Requests + Friends) -->
+  <aside class="sidebar relative bg-gray-800 border-2 border-gray-300 p-10 flex flex-col w-[300px]">
+    <!-- Invites / Requests -->
+    <section class="notifications flex justify-between items-center border-2 border-gray-300 p-2 mb-5 bg-gray-700">
+      <span class="text-white">Invites / Requests</span>
+      <div class="notif-icon relative" aria-label="Notifications">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white"
+          class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+        </svg>
+        <div id="notify-dot"
+          class="notify-dot absolute top-[-3px] right-[-3px] w-[6px] h-[6px] bg-red-500 rounded-full hidden"></div>
+      </div>
+    </section>
+
+    <!-- Friends -->
+    <section class="friends mt-6 flex-grow">
+      <h4 class="text-lg font-bold text-white">Friends</h4>
+      <ul id="friends-list" class="mt-2 space-y-1">
+        <!-- Example friend item -->
+        <!--
+        <li class="flex justify-between items-center text-white" data-user-id="42">
+          <span class="friend_name">Alice</span>
+          <button class="friend_chat underline text-sm" data-action="chat">chat</button>
+        </li>
+        -->
+      </ul>
+      <!-- Small empty text, when user has no friends -->
+      <div id="friends-empty" class="text-gray-400 text-sm mt-2 hidden">No friends yet.</div>
+    </section>
+
+    <button id="user-dashboard-btn"
+      class="user-dashboard-btn text-2xl mt-4 px-6 py-2 bg-gray-700 border-2 border-gray-300 text-white rounded hover:bg-teal-400 hover:border-teal-400 hover:text-white transition"
+      data-nav="user-dashboard">
+      User Dashboard
+    </button>
+  </aside>
+
+
+  <!-- Chat Modal -->
+  <!-- Fixed to make it independent of page scroll, inset to cover full screen, semi-transparent bg, grid to center content, z-50 to be on top of everything, hidden by default -->
+  <div id="chat-modal" class="fixed inset-0 bg-black/60 grid place-items-center z-50 hidden">
+    <!-- max width 720px or 92vw, max height 80vh, flex column to arrange header, history, and composer -->
+    <div class="bg-gray-800 border border-gray-300 rounded-xl w-[min(720px,92vw)] max-h-[80vh] flex flex-col shadow">
+      <!-- flex to arrange avatar, username, and close button with a gap, padding -->
+      <header class="flex items-center gap-3 p-3 border-b border-gray-300">
+        <div id="chat-avatar"
+          class="w-10 h-10 rounded-full bg-gray-700 border border-gray-300 grid place-items-center font-bold">
+        </div>
+        <!-- White text, larger font size -->
+        <h3 id="chat-username" class="text-white text-lg">Username</h3>
+        <!-- Close btn margin-left auto to push it to the right -->
+        <button id="chat-close" class="ml-auto text-zinc-400 hover:text-white text-2xl">&times;</button>
+      </header>
+
+      <!-- History -->
+      <!-- flex-1 so that the takes the space between the header and the composer flexibly, space-y-2 for space between messages -->
+      <div id="chat-history" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+
+      <!-- Footer -->
+      <!-- flex to arrange input and send button -->
+      <form id="chat-form" class="flex items-center gap-2 p-3 border-t border-gray-300">
+        <!-- textarea instead of input for multi-lines -->
+        <textarea id="chat-input"
+          class="flex-1 px-3 py-2 rounded-md bg-gray-700 border border-gray-300 text-white outline-none overflow-y-auto"
+          rows="1" placeholder="Type a message..."></textarea>
+        <button id="chat-send" class="px-4 py-2 rounded-md bg-teal-500 text-white">
+          Send
+        </button>
+      </form>
+    </div>
+  </div>
+
+	<div id="settingsModal" class="fixed inset-0 bg-black/60 grid place-items-center z-50 hidden">
+		<div class="bg-gray-800 border-2 border-gray-300 rounded-lg p-8 w-[350px] relative flex flex-col items-center">
+			<header class="flex items-center justify-between w-full px-4 py-3 border-b border-gray-700">
+				<h2 class="text-2xl font-bold text-white">Account Settings</h2>
+				<button id="closeSettingsBtn" class="text-gray-400 hover:text-white text-2xl ml-auto">&times;</button>
+			</header>
+			<button id="enable2faBtn" class="mb-4 mt-6 px-4 py-2 bg-teal-400 text-gray-900 rounded hover:bg-teal-500 transition">Enable 2FA</button>
+			<div id="qrContainer" class="flex flex-col items-center"></div>
+			<button id="logoutBtn" class="mb-4 px-4 py-2 bg-teal-400 text-gray-900 rounded hover:bg-teal-500 transition">Log Out</button>
+			<button id="deleteAccountBtn" class="mb-4 px-4 py-2 bg-teal-400 text-gray-900 rounded hover:bg-red-500 transition">Delete Account</button>
+			<form id="deletionForm" class="delete-form flex flex-col mt-2 hidden" autocomplete="off" novalidate>
+				<label for="deletePassword" class="text-white mb-2">Enter your password to confirm deletion:</label>
+				<input type="password" id="deletePassword" placeholder="Password" required
+					class="w-full box-border p-3 mb-2 font-sans text-xl bg-gray-700 text-gray-100 border-2 border-gray-300 rounded-md outline-none transition focus:shadow-[0_0_0_4px_rgba(63,191,127,0.08)] focus:border-teal-400 placeholder:text-gray-400" />
+				<button type="submit" id="confirmDeleteBtn"
+					class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">Confirm Delete</button>
+			</form>
+			<p id="mfaToggleMessage" class="text-lg min-h-[2.2rem] mt-1" aria-live="polite"></p>
+		</div>
+	</div>
+</div>

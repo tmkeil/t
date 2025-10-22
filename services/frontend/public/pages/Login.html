@@ -1,0 +1,44 @@
+<div class="flex-grow items-center justify-center p-10">
+<h2 class="text-3xl font-bold text-white mb-6 text-center">Welcome, please</h2>
+
+<section class="auth-container w-full max-w-[480px] mx-auto flex flex-col gap-6 items-stretch box-border p-5">
+    <!-- Login Section -->
+    <div class="auth-card bg-gray-800 border-2 border-gray-300 p-7 rounded-lg flex flex-col gap-3 min-h-[280px]">
+        <h3 class="auth-title text-3xl mb-1 text-teal-400 font-bold tracking-wide">Login</h3>
+        <form id="loginForm" class="auth-form flex flex-col" autocomplete="off" novalidate>
+            <input type="text" id="loginUsername" placeholder="Username" required
+                class="w-full box-border p-3 my-2 font-sans text-2xl bg-gray-700 text-gray-100 border-2 border-gray-300 rounded-md outline-none transition focus:shadow-[0_0_0_4px_rgba(63,191,127,0.08)] focus:border-teal-400 placeholder:text-gray-400" />
+            <input type="password" id="loginPassword" placeholder="Password" required
+                class="w-full box-border p-3 my-2 font-sans text-2xl bg-gray-700 text-gray-100 border-2 border-gray-300 rounded-md outline-none transition focus:shadow-[0_0_0_4px_rgba(63,191,127,0.08)] focus:border-teal-400 placeholder:text-gray-400" />
+            <div class="form-row flex gap-2 items-center">
+                <button type="submit" class="auth-submit text-2xl px-6 py-2 mt-2 bg-teal-200 text-gray-700 rounded-md border-none shadow hover:bg-pink-200 hover:text-gray-900 transition">Login</button>
+            </div>
+        </form>
+        <p id="loginError" class="auth-error text-pink-500 text-lg min-h-[2.2rem] mt-1" aria-live="polite"></p>
+    </div>
+
+    <!-- Or Separator -->
+    <div class="flex items-center my-2">
+        <div class="flex-grow border-t border-gray-400"></div>
+        <span class="mx-4 text-gray-300 font-semibold">or</span>
+        <div class="flex-grow border-t border-gray-400"></div>
+    </div>
+
+    <!-- Register Section -->
+    <div class="auth-card bg-gray-800 border-2 border-gray-300 p-7 rounded-lg flex flex-col gap-3 min-h-[280px]">
+        <h3 class="auth-title text-3xl mb-1 text-teal-400 font-bold tracking-wide">Register</h3>
+        <form id="registerForm" class="auth-form flex flex-col" autocomplete="off" novalidate>
+            <input type="text" id="registerUsername" placeholder="Username" required
+                class="w-full box-border p-3 my-2 font-sans text-2xl bg-gray-700 text-gray-100 border-2 border-gray-300 rounded-md outline-none transition focus:shadow-[0_0_0_4px_rgba(63,191,127,0.08)] focus:border-teal-400 placeholder:text-gray-400" />
+            <input type="email" id="registerEmail" placeholder="Email" required
+                class="w-full box-border p-3 my-2 font-sans text-2xl bg-gray-700 text-gray-100 border-2 border-gray-300 rounded-md outline-none transition focus:shadow-[0_0_0_4px_rgba(63,191,127,0.08)] focus:border-teal-400 placeholder:text-gray-400" />
+            <input type="password" id="registerPassword" placeholder="Password" required
+                class="w-full box-border p-3 my-2 font-sans text-2xl bg-gray-700 text-gray-100 border-2 border-gray-300 rounded-md outline-none transition focus:shadow-[0_0_0_4px_rgba(63,191,127,0.08)] focus:border-teal-400 placeholder:text-gray-400" />
+            <div class="form-row flex gap-2 items-center">
+                <button type="submit" class="auth-submit text-2xl px-6 py-2 mt-2 bg-teal-200 text-gray-700 rounded-md border-none shadow hover:bg-pink-200 hover:text-gray-900 transition">Register</button>
+            </div>
+        </form>
+		<p id="registerMessage" class="auth-error text-lg min-h-[2.2rem] mt-1" aria-live="polite"></p>
+    </div>
+</section>
+</div>

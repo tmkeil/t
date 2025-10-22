@@ -1,0 +1,21 @@
+<div class="flex flex-col items-center">
+  <div id="tournamentStatus" class="text-sm text-gray-300">Not joined</div>
+
+  <!-- Canvas -->
+  <canvas id="gameCanvas" class="w-[90vw] max-w-[1280px] h-[500px] bg-[#001f1f] rounded-lg shadow-lg"></canvas>
+
+  <!-- Game Controls -->
+  <div id="gameControls" class="mt-2 flex gap-2 flex-wrap justify-center">
+    <button id="startBtn" class="px-3 py-1 bg-green-700 hover:bg-green-800 rounded text-sm">Ready</button>
+    <button id="leaveBtn" class="px-3 py-1 bg-red-700 hover:bg-red-800 rounded text-sm">Home</button>
+  </div>
+
+  <!-- Room Input + Button -->
+  <div class="w-full flex flex-col items-center mt-2">
+    <input 
+      type="text" id="roomInput" placeholder="Room to enter" required
+      class="w-full max-w-sm box-border p-3 my-2 font-sans text-2xl bg-gray-700 text-gray-100 border-2 border-gray-300 rounded-md outline-none transition focus:shadow-[0_0_0_4px_rgba(63,191,127,0.08)] focus:border-teal-400 placeholder:text-gray-400" 
+    />
+    <button id="joinBtn" class="px-3 py-1 bg-blue-700 hover:bg-blue-800 rounded text-sm">Join/Create Room</button>
+  </div>
+</div>
