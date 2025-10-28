@@ -12,7 +12,7 @@ type UsersData = {
   level: number;
   created_at: string;
   email?: string;
-  status: "ok" | "friend" | "blocked" | "blocked_me";
+  status: "ok" | "friend" | "blocked" | "blocked_me" | "request_sent";
 };
 
 type FriendsType = {
@@ -81,10 +81,19 @@ const getUsers = async () => {
     return [];
   }
   const blockedMeIds = (await blockedMeRes.json()).map((b: BlocksType) => b.user_id);
+
+  // Users that I have sent friend requests to
+  const sentRequestsRes = await fetch(`/api/users/${myUserId}/sentFriendRequests`);
+  if (!sentRequestsRes.ok) {
+    console.error("Failed to fetch sent friend requests:", sentRequestsRes.statusText);
+    return [];
+  }
+  const sentRequestIds = (await sentRequestsRes.json()).map((r: any) => r.receiver_id);
   
   console.log("Friends:", friendIds);
   console.log("Blocks:", blockIds);
   console.log("Blocked me:", blockedMeIds);
+  console.log("Sent requests:", sentRequestIds);
 
   for (const user of users) {
     // If the user is myself, set status to "ok"
@@ -106,6 +115,11 @@ const getUsers = async () => {
     else if (friendIds.includes(user.id)) {
       console.log("User is friend:", user.id);
       user.status = "friend";
+    }
+    // If I have sent a friend request to this user, set status to "request_sent"
+    else if (sentRequestIds.includes(user.id)) {
+      console.log("Friend request sent to user:", user.id);
+      user.status = "request_sent";
     }
     // Otherwise, set status to "ok"
     else {
@@ -213,7 +227,7 @@ export const mountDashboard = async (root: HTMLElement) => {
     li.innerHTML = `
     <li class="usercard" data-user-id="${user.id}" data-status="${user.status}">
         <div class="usercard_left">
-          <div class="avatar">A</div>
+          <div class="avatar"></div>
           <div class="usercard_meta">
             <div class="usercard_name">${user.username}</div>
             <div class="usercard_level">Level ${level}</div>
@@ -233,6 +247,16 @@ export const mountDashboard = async (root: HTMLElement) => {
           <button class="btn btn--ghost" data-action="unblock">Unblock</button>
         </div>
       </li>`;
+
+      // Click handler to open Users Modal when clicking on user info in the users card
+      const usercardLeft = li.querySelector('.usercard_left') as HTMLDivElement;
+      if (usercardLeft) {
+        usercardLeft.style.cursor = 'pointer';
+        usercardLeft.addEventListener("click", () => {
+          console.log("Opening users modal for:", user.username);
+          openUsersModal(user);
+        });
+      }
 
       // Reference the buttons
       const addFriendBtn = li.querySelector('[data-action="add-friend"]') as HTMLButtonElement;
@@ -284,10 +308,109 @@ export const mountDashboard = async (root: HTMLElement) => {
     }
   };
 
+  // Opens the users modal (when clicking on a user card)
+  const openUsersModal = (user: UsersData) => {
+    // Elements inside the users modal that will be filled
+    const modal = document.getElementById("users-modal") as HTMLDivElement;
+    const usernameEl = document.getElementById("users-username") as HTMLHeadingElement;
+    const levelEl = document.getElementById("users-level") as HTMLParagraphElement;
+    const avatarEl = document.getElementById("users-avatar") as HTMLDivElement;
+    const winsEl = document.getElementById("users-wins") as HTMLDivElement;
+    const lossesEl = document.getElementById("users-losses") as HTMLDivElement;
+    const winrateEl = document.getElementById("users-winrate") as HTMLDivElement;
+    const addFriendBtn = document.getElementById("users-add-friend") as HTMLButtonElement;
+    const unfriendBtn = document.getElementById("users-unfriend") as HTMLButtonElement;
+    const statusMessage = document.getElementById("users-status-message") as HTMLDivElement;
+
+    // Fill the modal
+    usernameEl.textContent = user.username;
+    levelEl.textContent = `Level ${user.level}`;
+    avatarEl.textContent = user.username.charAt(0).toUpperCase();
+    winsEl.textContent = user.wins.toString();
+    lossesEl.textContent = user.losses.toString();
+    
+    const totalGames = user.wins + user.losses;
+    const winRate = totalGames > 0 ? Math.round((user.wins / totalGames) * 100) : 0;
+    winrateEl.textContent = `${winRate}%`;
+
+    // Hide all the action buttons
+    addFriendBtn.classList.add("hidden");
+    unfriendBtn.classList.add("hidden");
+    statusMessage.classList.add("hidden");
+
+    // Show appropriate button or status message based on user status
+    switch (user.status) {
+      case "ok":
+        addFriendBtn.classList.remove("hidden");
+        break;
+      case "friend":
+        unfriendBtn.classList.remove("hidden");
+        break;
+      case "blocked":
+        statusMessage.textContent = "You have blocked this user";
+        statusMessage.className = "w-full px-4 py-2 rounded-md bg-red-600 text-white text-center";
+        statusMessage.classList.remove("hidden");
+        break;
+      case "blocked_me":
+        statusMessage.textContent = "This user has blocked you";
+        statusMessage.className = "w-full px-4 py-2 rounded-md bg-yellow-600 text-white text-center";
+        statusMessage.classList.remove("hidden");
+        break;
+      case "request_sent":
+        statusMessage.textContent = "Friend request sent";
+        statusMessage.className = "w-full px-4 py-2 rounded-md bg-purple-600 text-white text-center";
+        statusMessage.classList.remove("hidden");
+        break;
+    }
+
+    // Simple event handlers - remove any existing listeners first
+    addFriendBtn.onclick = async () => {
+      console.log("Add friend from users modal:", user.id);
+      await sendRequest(user.id, myUser?.id);
+      modal.classList.add("hidden");
+      // Refresh the page data
+      users = await getUsers();
+      renderUserCards(usersListEl, users, userId, myUser);
+    };
+
+    unfriendBtn.onclick = async () => {
+      console.log("Unfriend from users modal:", user.id);
+      await unfriend(user.id, myUser?.id);
+      modal.classList.add("hidden");
+      // Refresh the page data
+      users = await getUsers();
+      renderUserCards(usersListEl, users, userId, myUser);
+    };
+
+    // Show the modal
+    modal.classList.remove("hidden");
+  };
+
+  const closeUsersModal = () => {
+    const modal = document.getElementById("users-modal") as HTMLDivElement;
+    modal.classList.add("hidden");
+  };
+
   // Reference the ul element to append user cards to
   const usersListEl = root.querySelector("#users-list") as HTMLUListElement;
   // Render the user cards
   renderUserCards(usersListEl, users, userId, myUser);
+
+  // Set up Users Modal close handlers
+  const usersModal = document.getElementById("users-modal") as HTMLDivElement;
+  const usersCloseBtn = document.getElementById("users-close") as HTMLButtonElement;
+  
+  if (usersCloseBtn) {
+    usersCloseBtn.addEventListener("click", closeUsersModal);
+  }
+  
+  if (usersModal) {
+    usersModal.addEventListener("click", (e) => {
+      if (e.target === usersModal) {
+        closeUsersModal();
+      }
+    });
+  }
 
   // User Dashboard elements
   const searchInput = root.querySelector("#user-search") as HTMLInputElement;

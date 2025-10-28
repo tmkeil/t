@@ -344,3 +344,29 @@ hidden: Add Friend, Unblock
 .usercard[data-status="friend"] .badge::before {
     content: "FRIEND";
 }
+
+/* If the data-status of the usercard is request_sent
+(If this user has sent a friend request to the user in the usercard)
+visible: Badge("REQUEST SENT")
+hidden: Add Friend, Unfriend, Block, Unblock
+*/
+.usercard[data-status="request_sent"] [data-action="add-friend"],
+.usercard[data-status="request_sent"] [data-action="unfriend"],
+.usercard[data-status="request_sent"] [data-action="block"],
+.usercard[data-status="request_sent"] [data-action="unblock"] {
+    display: none;
+}
+
+.usercard[data-status="request_sent"] .badge {
+    display: inline-block;
+    background: #ddd6fe;
+    border: 1px solid #c4b5fd;
+    color: #7c3aed;
+    padding: 2px 6px;
+    border-radius: 999px;
+    width: max-content;
+}
+
+.usercard[data-status="request_sent"] .badge::before {
+    content: "REQUEST SENT";
+}

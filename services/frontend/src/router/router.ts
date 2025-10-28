@@ -76,8 +76,7 @@ async function handleLocation(): Promise<void> {
             const { mountLogin } = await import("/src/pages/Login.js");
             // Call the mountLogin to set up event listeners and manage the login page
             // And execute the returned code, when navigating away from the login page
-            mountLogin(root);
-            teardown = () => {};
+            teardown = mountLogin(root) || (() => {});
         } else if (path === "/dashboard") {
             const { mountDashboard } = await import("/src/pages/Dashboard.js");
             teardown = await mountDashboard(root);

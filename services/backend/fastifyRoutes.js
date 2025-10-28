@@ -82,6 +82,7 @@ export default async function (fastify, options) {
     });
 
     // Get the friend requests for a user by userId from the db
+    // It shows the current pending friend requests for this user
     fastify.get("/api/users/:id/friendRequests", async (request, reply) => {
         const userId = parseInt(request.params.id);
         if (!userId) {
@@ -91,6 +92,23 @@ export default async function (fastify, options) {
             const rows = await fetchAll(db, `SELECT * FROM friend_requests WHERE receiver_id = ?`, [userId]);
             console.log("Fetched friend requests: ", rows);
             // If there are no rows, return an empty array
+            if (!rows) return reply.send([]);
+            reply.send(rows);
+        } catch (err) {
+            reply.code(500).send({ error: err.message });
+        }
+    });
+
+    // Get the users that the given user has sent friend requests to
+    // Its needed to deactivate the friend request button on the frontend
+    fastify.get("/api/users/:id/sentFriendRequests", async (request, reply) => {
+        const userId = parseInt(request.params.id);
+        if (!userId) {
+            return reply.code(400).send({ error: "Invalid user ID" });
+        }
+        try {
+            const rows = await fetchAll(db, `SELECT * FROM friend_requests WHERE sender_id = ?`, [userId]);
+            console.log("Fetched sent friend requests: ", rows);
             if (!rows) return reply.send([]);
             reply.send(rows);
         } catch (err) {

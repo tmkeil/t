@@ -81,7 +81,7 @@ type UsersData = {
   created_at: string;
   email?: string;
   avatar_selector?: number;
-  status: "ok" | "friend" | "blocked" | "blocked_me";
+  status: "ok" | "friend" | "blocked" | "blocked_me" | "request_sent";
 };
 
 type FriendsType = {
@@ -110,6 +110,30 @@ type ChatContext = {
   peerName: string;
 };
 let currentChat: ChatContext | null = null;
+
+// When this user sends a friend request to userId inside the users modal
+const sendRequest = async (userId: number, myUserId: number | undefined) => {
+  const res = await fetch(`/api/users/${myUserId}/sendFriendRequest`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ friendId: userId })
+  });
+  if (!res.ok) {
+    console.error("Failed to send friend request:", res.statusText);
+  }
+};
+
+// When this user unfriends userId inside the users modal
+const unfriend = async (userId: number, myUserId: number | undefined) => {
+  const res = await fetch(`/api/users/${myUserId}/unfriend`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ friendId: userId })
+  });
+  if (!res.ok) {
+    console.error("Failed to unfriend user:", res.statusText);
+  }
+};
 
 // Same as in Dashboard.ts to get the users with their relationship status to render the user cards
 const getUsers = async (): Promise<UsersData[]> => {
@@ -156,9 +180,18 @@ const getUsers = async (): Promise<UsersData[]> => {
   }
   const blockedMeIds = (await blockedMeRes.json()).map((b: BlocksType) => b.user_id);
 
+  // Users that I have sent friend requests to
+  const sentRequestsRes = await fetch(`/api/users/${myUserId}/sentFriendRequests`);
+  if (!sentRequestsRes.ok) {
+    console.error("Failed to fetch sent friend requests:", sentRequestsRes.statusText);
+    return [];
+  }
+  const sentRequestIds = (await sentRequestsRes.json()).map((r: any) => r.receiver_id);
+
   // console.log("Friend IDs in Home.ts:", friendIds);
   // console.log("Block IDs in Home.ts:", blockIds);
   // console.log("Blocked Me IDs in Home.ts:", blockedMeIds);
+  // console.log("Sent Request IDs in Home.ts:", sentRequestIds);
 
   for (const user of users) {
     if (user.id === myUserId)
@@ -169,6 +202,8 @@ const getUsers = async (): Promise<UsersData[]> => {
       user.status = "blocked_me";
     else if (friendIds.includes(user.id))
       user.status = "friend";
+    else if (sentRequestIds.includes(user.id))
+      user.status = "request_sent";
     else
       user.status = "ok";
   }
@@ -210,38 +245,6 @@ const declineFriendRequest = async (requestId: number) => {
     if (!res.ok) throw new Error(await res.text());
   } catch (error) {
     console.error("Error declining friend request:", error);
-  }
-};
-
-// This renders the friends list in the container (sidebar). Friends are users with status
-// "friend" to this user (retrieved from getUsers())
-const renderFriends = (container: HTMLUListElement, users: UsersData[], myUserId: number) => {
-  // console.log("Rendering friends list in sidebar...");
-  container.innerHTML = "";
-
-  // Get the users from users, which are friends to this user
-  const friends = users.filter((u) => u.id !== myUserId && u.status === "friend");
-
-  // If there are no friends, show "No friends yet"
-  const empty = document.getElementById("friends-empty");
-  if (friends.length === 0) empty?.classList.remove("hidden");
-  else empty?.classList.add("hidden");
-
-  // Render each friend in the sidebar
-  for (const f of friends) {
-    const li = document.createElement("li");
-    li.className = "flex justify-between items-center text-white";
-    li.dataset.userId = String(f.id);
-    // Each friend li has the friend's name and a chat button.
-    // The chat button will only be visible, if the user is not blocked by this user
-    li.innerHTML = `
-      <span class="friend_name">${f.username}</span>
-      <button class="friend_chat underline text-sm" data-action="chat">chat</button>
-    `;
-    const btn = li.querySelector<HTMLButtonElement>('[data-action="chat"]')!;
-    // TODO: Open chat with friend f.id
-    btn.addEventListener("click", () => openChatModal(f));
-    container.appendChild(li);
   }
 };
 
@@ -351,30 +354,6 @@ const prepareChatModal = async () => {
     input.value = "";
     input.focus();
   });
-};
-
-// This will be called when the user clicks the chat button
-// in the friends list which contains the friend's object
-const openChatModal = (friend: UsersData) => {
-  currentChat = { peerId: friend.id, peerName: friend.username };
-
-  const modal = document.getElementById("chat-modal") as HTMLDivElement;
-  const uname = document.getElementById("chat-username") as HTMLHeadingElement;
-  const history = document.getElementById("chat-history") as HTMLDivElement;
-  const avatar = document.getElementById("chat-avatar") as HTMLImageElement;
-  const input = document.getElementById("chat-input") as HTMLInputElement;
-
-  // Show the friend's name in the modal header
-  uname.textContent = friend.username;
-
-  // Clear the chat history (for now. For later perhaps load the the chat history.
-  // That would also be useful if this user has multiple chat modals open)
-  history.innerHTML = "";
-
-  modal.classList.remove("hidden");
-
-  // Focus the input field: It directly sets the cursor there
-  input?.focus();
 };
 
 // Appends a chat message to the chat
@@ -517,6 +496,170 @@ export const HomeController = async (root: HTMLElement) => {
     return () => { };
   }
 
+  // Function to open and populate the Users Modal
+  const openUsersModal = (user: UsersData) => {
+    const modal = document.getElementById("users-modal") as HTMLDivElement;
+    const usernameEl = document.getElementById("users-username") as HTMLHeadingElement;
+    const levelEl = document.getElementById("users-level") as HTMLParagraphElement;
+    const avatarEl = document.getElementById("users-avatar") as HTMLDivElement;
+    const winsEl = document.getElementById("users-wins") as HTMLDivElement;
+    const lossesEl = document.getElementById("users-losses") as HTMLDivElement;
+    const winrateEl = document.getElementById("users-winrate") as HTMLDivElement;
+
+    // Populate user data
+    usernameEl.textContent = user.username;
+    levelEl.textContent = `Level ${user.level}`;
+    avatarEl.textContent = user.username.charAt(0).toUpperCase();
+    winsEl.textContent = user.wins.toString();
+    lossesEl.textContent = user.losses.toString();
+    
+    const totalGames = user.wins + user.losses;
+    const winRate = totalGames > 0 ? Math.round((user.wins / totalGames) * 100) : 0;
+    winrateEl.textContent = `${winRate}%`;
+
+    // Get action buttons and status message
+    const addFriendBtn = document.getElementById("users-add-friend") as HTMLButtonElement;
+    const unfriendBtn = document.getElementById("users-unfriend") as HTMLButtonElement;
+    const statusMessage = document.getElementById("users-status-message") as HTMLDivElement;
+
+    // Hide all elements initially
+    addFriendBtn.classList.add("hidden");
+    unfriendBtn.classList.add("hidden");
+    statusMessage.classList.add("hidden");
+
+    // Show appropriate button or status message based on user status
+    switch (user.status) {
+      case "ok":
+        addFriendBtn.classList.remove("hidden");
+        break;
+      case "friend":
+        unfriendBtn.classList.remove("hidden");
+        break;
+      case "blocked":
+        statusMessage.textContent = "You have blocked this user";
+        statusMessage.className = "w-full px-4 py-2 rounded-md bg-red-600 text-white text-center";
+        statusMessage.classList.remove("hidden");
+        break;
+      case "blocked_me":
+        statusMessage.textContent = "This user has blocked you";
+        statusMessage.className = "w-full px-4 py-2 rounded-md bg-yellow-600 text-white text-center";
+        statusMessage.classList.remove("hidden");
+        break;
+      case "request_sent":
+        statusMessage.textContent = "Friend request sent";
+        statusMessage.className = "w-full px-4 py-2 rounded-md bg-purple-600 text-white text-center";
+        statusMessage.classList.remove("hidden");
+        break;
+    }
+
+    // Event listeners on the buttons in the users modal
+    addFriendBtn.onclick = async () => {
+      console.log("Add friend from users modal:", user.id);
+      await sendRequest(user.id, myUserId);
+      modal.classList.add("hidden");
+      // Refresh friends list
+      const users = await getUsers();
+      renderFriends(friendsListEl, users, myUserId);
+    };
+
+    unfriendBtn.onclick = async () => {
+      console.log("Unfriend from users modal:", user.id);
+      await unfriend(user.id, myUserId);
+      modal.classList.add("hidden");
+      // Refresh friends list
+      const users = await getUsers();
+      renderFriends(friendsListEl, users, myUserId);
+    };
+
+    // Show the modal
+    modal.classList.remove("hidden");
+  };
+
+  // This renders the friends list in the container (sidebar). Friends are users with status
+  // "friend" to this user (retrieved from getUsers())
+  const renderFriends = (container: HTMLUListElement, users: UsersData[], myUserId: number) => {
+    // console.log("Rendering friends list in sidebar...");
+    container.innerHTML = "";
+
+    // Get the users from users, which are friends to this user
+    const friends = users.filter((u) => u.id !== myUserId && u.status === "friend");
+
+    // If there are no friends, show "No friends yet"
+    const empty = document.getElementById("friends-empty");
+    if (friends.length === 0) empty?.classList.remove("hidden");
+    else empty?.classList.add("hidden");
+
+    // Render each friend in the sidebar
+    for (const f of friends) {
+      const li = document.createElement("li");
+      li.className = "flex justify-between items-center text-white";
+      li.setAttribute("data-user-id", f.id.toString());
+
+      const friendName = document.createElement("span");
+      friendName.className = "friend_name cursor-pointer hover:text-teal-400";
+      friendName.textContent = f.username;
+
+      const chatBtn = document.createElement("button");
+      chatBtn.className = "friend_chat underline text-sm hover:text-teal-400";
+      chatBtn.setAttribute("data-action", "chat");
+      chatBtn.textContent = "chat";
+
+      // Add click handlers
+      friendName.addEventListener("click", () => {
+        console.log("Opening users modal for friend:", f.username);
+        openUsersModal(f);
+      });
+
+      chatBtn.addEventListener("click", () => {
+        console.log("Opening chat with:", f.username);
+        openChatModal(f);
+      });
+
+      li.appendChild(friendName);
+      li.appendChild(chatBtn);
+      container.appendChild(li);
+    }
+  };
+
+  // This will be called when the user clicks the chat button
+  // in the friends list which contains the friend's object
+  const openChatModal = (friend: UsersData) => {
+    currentChat = { peerId: friend.id, peerName: friend.username };
+
+    const modal = document.getElementById("chat-modal") as HTMLDivElement;
+    const uname = document.getElementById("chat-username") as HTMLHeadingElement;
+    const history = document.getElementById("chat-history") as HTMLDivElement;
+    const avatar = document.getElementById("chat-avatar") as HTMLImageElement;
+    const input = document.getElementById("chat-input") as HTMLInputElement;
+
+    // Show the friend's name in the modal header
+    uname.textContent = friend.username;
+    avatar.textContent = friend.username.charAt(0).toUpperCase();
+
+    // Add click handlers to username and avatar to open Users Modal
+    const clickHandler = () => {
+      console.log("Opening users modal from chat for:", friend.username);
+      openUsersModal(friend);
+    };
+    
+    // Remove previous click handlers and add new ones
+    uname.onclick = clickHandler;
+    avatar.onclick = clickHandler;
+    uname.style.cursor = 'pointer';
+    avatar.style.cursor = 'pointer';
+    uname.classList.add('hover:text-teal-400');
+    avatar.classList.add('hover:bg-gray-600');
+
+    // Clear the chat history (for now. For later perhaps load the the chat history.
+    // That would also be useful if this user has multiple chat modals open)
+    history.innerHTML = "";
+
+    modal.classList.remove("hidden");
+
+    // Focus the input field: It directly sets the cursor there
+    input?.focus();
+  };
+
   // If the userId was successfully fetched, connect the WS with the userId
   ws.connect(myUserId);
 
@@ -546,6 +689,26 @@ export const HomeController = async (root: HTMLElement) => {
 
   // Prepare the chat modal in the DOM and bind the open/close click logic
   prepareChatModal();
+
+  // Users Modal close event listeners
+  const usersModal = document.getElementById("users-modal") as HTMLDivElement;
+  const usersCloseBtn = document.getElementById("users-close") as HTMLButtonElement;
+  
+  const closeUsersModal = () => {
+    usersModal?.classList.add("hidden");
+  };
+  
+  if (usersCloseBtn) {
+    usersCloseBtn.addEventListener("click", closeUsersModal);
+  }
+  
+  if (usersModal) {
+    usersModal.addEventListener("click", (e) => {
+      if (e.target === usersModal) {
+        closeUsersModal();
+      }
+    });
+  }
 
   // UI Elements from the Home page to fill them dynamically
   const myNameEl = root.querySelector<HTMLDivElement>("#my-name")!;
@@ -756,6 +919,24 @@ export const HomeController = async (root: HTMLElement) => {
 			deletePasswordInput.value = "";
 		});
 	}
+
+  // Set up Users Modal close handlers
+  const usersModalSetup = document.getElementById("users-modal") as HTMLDivElement;
+  const usersCloseBtnSetup = document.getElementById("users-close") as HTMLButtonElement;
+  
+  if (usersCloseBtnSetup) {
+    usersCloseBtnSetup.addEventListener("click", () => {
+      usersModalSetup.classList.add("hidden");
+    });
+  }
+  
+  if (usersModalSetup) {
+    usersModalSetup.addEventListener("click", (e) => {
+      if (e.target === usersModalSetup) {
+        usersModalSetup.classList.add("hidden");
+      }
+    });
+  }
 
   // Binds the tooltip listeners
   attachTooltipListeners(root);
